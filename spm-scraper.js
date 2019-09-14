@@ -1,12 +1,13 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
+const PAGE_TO_CHECK = 1;
 const getChildData = e => (e.children[0] ? e.children[0].data : e.children[0]);
 const filterNotUsed = e => e !== undefined && !e.includes("\n");
 
-for (let i = 1; i < 4; i++) {
-  const url = `https://marknadssok.fi.se/publiceringsklient?Page=${i}`;
-  axios(url).then(response => {
+const getPublicationData = async page => {
+  const url = `https://marknadssok.fi.se/publiceringsklient?Page=${page}`;
+  return axios(url).then(response => {
     const html = response.data;
     const $ = cheerio.load(html);
     const table = $(".table");
@@ -30,6 +31,8 @@ for (let i = 1; i < 4; i++) {
         }));
       return Object.assign(...formattedTds);
     });
-    console.log(formattedTrs);
+    return formattedTrs;
   });
-}
+};
+
+getPublicationData(PAGE_TO_CHECK).then(p => console.log(p));
