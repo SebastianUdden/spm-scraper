@@ -1,7 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
-const PAGE_TO_CHECK = 1;
 const getChildData = e => (e.children[0] ? e.children[0].data : e.children[0]);
 const filterNotUsed = e => e !== undefined && !e.includes("\n");
 
@@ -15,24 +14,28 @@ const getPublicationData = async page => {
     const thead = table[0].children.find(c => c.name === "thead");
     const ths = thead.children
       .filter(c => c.name === "tr")[0]
-      .children.filter(c => c.name === "th")
-      .map(getChildData)
-      .filter(filterNotUsed);
+      .children.filter(c => c.name === "th");
+    const formatedThs = ths.map(getChildData).filter(filterNotUsed);
+    console.log("FTHS", formatedThs);
 
     const tbody = table[0].children.find(c => c.name === "tbody");
     const trs = tbody.children.filter(c => c.name === "tr");
-    const formattedTrs = trs.map(tr => {
+    const formatedTrs = trs.map(tr => {
       const tds = tr.children.filter(trc => trc.name === "td");
-      const formattedTds = tds
+      const formatedTds = tds
         .map(getChildData)
-        .filter(filterNotUsed)
+        .map(c => {
+          if (c !== undefined && c.includes("\n")) return undefined;
+          return c;
+        })
         .map((td, index) => ({
-          [`${ths[index]}`]: td
+          [`${formatedThs[index]}`]: td
         }));
-      return Object.assign(...formattedTds);
+      console.log("FTDS", formatedTds);
+      return Object.assign(...formatedTds);
     });
-    return formattedTrs;
+    return formatedTrs;
   });
 };
 
-getPublicationData(PAGE_TO_CHECK).then(p => console.log(p));
+export default getPublicationData;
